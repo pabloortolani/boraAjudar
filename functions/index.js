@@ -6,15 +6,19 @@ const express = require('express')
 const bodyParser = require('body-parser')
 const app = express()
 
-//admin.initializeApp(functions.config().firebase)
-admin.initializeApp()
 
 /*
-admin.initializeApp({
-    credential: admin.credential.applicationDefault(),
-    databaseURL: 'https://bora-ajudar-pablo.firebaseio.com'
-});
+acessa:
+https://console.firebase.google.com/u/0/project/_/settings/serviceaccounts/adminsdk
+
+Manda salvar a chave.json e muda aqui embaixo.
 */
+var serviceAccount = require("./chave.json")
+
+admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
+    databaseURL: 'https://bora-ajudar-pablo.firebaseio.com'
+})
 
 
 const request = require('request-promise')
@@ -22,20 +26,20 @@ const parse = require('xml2js').parseString
 
 const email = "EMAIL"
 const token = "TOKEN_PAGSEGURO"
-const checkouUrl = "https://sandbox.pagseguro.uol.com.br/v2/checkout/payment.html?code="+token
+const checkouUrl = "https://sandbox.pagseguro.uol.com.br/v2/checkout/payment.html?code=" + token
 
 app.use(bodyParser.json())
-app.use(bodyParser.urlencoded({extended:true}))
+app.use(bodyParser.urlencoded({ extended: true }))
 
 app.get('/', (req, res) => {
     admin.database()
-    .ref('transactions/111')
-    .set({
-        test: 1
-    })
-    .then(() => {
-        res.send('BoraAjudar Server')
-    })
+        .ref('transactions/111')
+        .set({
+            test: 1
+        })
+        .then(() => {
+            res.send('BoraAjudar Server')
+        })
 })
 
 app.post('/donate', (req, res) => {
@@ -52,13 +56,13 @@ app.post('/donate', (req, res) => {
             itemQuantity1: '1',
             itemAmount1: '15.00'
         },
-        headers:{
+        headers: {
             'Content-Type': 'application/x-www-urlencoded; charset=UTF-8'
         }
     }).then(data => {
         parse(data, (err, json) => {
             res.send({
-                url: checkouUrl+json.checkout.code[0]
+                url: checkouUrl + json.checkout.code[0]
             })
         })
     })
